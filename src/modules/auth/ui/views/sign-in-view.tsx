@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 import { OctagonAlertIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -35,9 +36,9 @@ export function SignInView() {
       password: "",
     },
   });
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const router = useRouter();
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setError(null);
@@ -47,11 +48,33 @@ export function SignInView() {
       {
         email: values.email,
         password: values.password,
+        callbackURL: "/",
       },
       {
         onSuccess: () => {
           setPending(false);
           router.push("/");
+        },
+        onError: ({ error }) => {
+          setPending(false);
+          setError(error.message);
+        },
+      }
+    );
+  }
+
+  function onSocial(provider: "github" | "google") {
+    setError(null);
+    setPending(true);
+
+    authClient.signIn.social(
+      {
+        provider,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
         },
         onError: ({ error }) => {
           setPending(false);
@@ -138,8 +161,9 @@ export function SignInView() {
                     variant="outline"
                     type="button"
                     className="w-full"
+                    onClick={() => onSocial("google")}
                   >
-                    Google
+                    <FaGoogle className="size-4" />
                   </Button>
 
                   <Button
@@ -147,8 +171,9 @@ export function SignInView() {
                     variant="outline"
                     type="button"
                     className="w-full"
+                    onClick={() => onSocial("github")}
                   >
-                    Github
+                    <FaGithub className="size-4" />
                   </Button>
                 </div>
 
