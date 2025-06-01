@@ -1,15 +1,48 @@
 import { db } from "@/db";
 import { agents } from "@/db/schema";
-import { baseProcedure, createTRPCRouter } from "@/trpc/init";
-// import { TRPCError } from "@trpc/server";
+import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import { agentsInsertSchema } from "../schemas";
+import z from "zod";
+import { and, eq } from "drizzle-orm";
 
 export const agentsRouter = createTRPCRouter({
-  getMany: baseProcedure.query(async () => {
-    const data = await db.select().from(agents);
+  getOne: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const [data] = await db
+        .select()
+        .from(agents)
+        .where(
+          and(eq(agents.id, input.id), eq(agents.userId, ctx.auth.user.id))
+        );
 
-    // await new Promise((resolve) => setTimeout(resolve, 5000));
-    // throw new TRPCError({ code: "BAD_REQUEST" });
+      return data;
+    }),
+
+  getMany: protectedProcedure.query(async ({ ctx }) => {
+    const data = await db
+      .select()
+      .from(agents)
+      .where(eq(agents.userId, ctx.auth.user.id));
 
     return data;
   }),
+
+  create: protectedProcedure
+    .input(agentsInsertSchema)
+    .mutation(async ({ input, ctx }) => {
+      const [createdAgent] = await db
+        .insert(agents)
+        .values({
+          ...input,
+          userId: ctx.auth.user.id,
+        })
+        .returning();
+
+      return createdAgent;
+    }),
 });
