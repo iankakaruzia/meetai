@@ -64,7 +64,7 @@ export const agentsRouter = createTRPCRouter({
         .where(
           and(
             eq(agents.userId, ctx.auth.user.id),
-            search ? ilike(agents.name, `%${search}%`) : undefined
+            !!search ? ilike(agents.name, `%${search}%`) : undefined
           )
         )
         .orderBy(desc(agents.createdAt), desc(agents.id))
@@ -100,7 +100,7 @@ export const agentsRouter = createTRPCRouter({
       return createdAgent;
     }),
 
-  remote: protectedProcedure
+  remove: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const [deletedAgent] = await db

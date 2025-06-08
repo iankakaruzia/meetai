@@ -30,7 +30,7 @@ export function AgentIdView({ agentId }: AgentIdViewProps) {
   );
   const queryClient = useQueryClient();
   const removeAgent = useMutation(
-    trpc.agents.remote.mutationOptions({
+    trpc.agents.remove.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(
           trpc.agents.getMany.queryOptions({})

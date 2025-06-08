@@ -1,34 +1,33 @@
 "use client";
 
+import { DataTable } from "@/components/data-table";
 import { ErrorState } from "@/components/error-state";
 import { LoadingState } from "@/components/loading-state";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { columns } from "../components/columns";
 import { EmptyState } from "@/components/empty-state";
-import { useAgentsFilters } from "../../hooks/use-agents-filters";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/data-table";
+import { useMeetingsFilters } from "../../hooks/use-meetings-filters";
 import { DataPagination } from "@/components/data-pagination";
 
-export function AgentsView() {
-  const [filters, setFilters] = useAgentsFilters();
+export function MeetingsView() {
   const trpc = useTRPC();
+  const router = useRouter();
+  const [filters, setFilters] = useMeetingsFilters();
   const { data } = useSuspenseQuery(
-    trpc.agents.getMany.queryOptions({
+    trpc.meetings.getMany.queryOptions({
       ...filters,
     })
   );
-  const router = useRouter();
 
   return (
     <div className="flex-1 pb-4 px-4 md:px-8 flex flex-col gap-y-4">
       <DataTable
         columns={columns}
         data={data.items}
-        onRowClick={(row) => router.push(`/agents/${row.id}`)}
+        onRowClick={(row) => router.push(`/meetings/${row.id}`)}
       />
-
       <DataPagination
         page={filters.page}
         totalPages={data.totalPages}
@@ -37,27 +36,27 @@ export function AgentsView() {
 
       {data.items.length === 0 && (
         <EmptyState
-          title="Create your first agent"
-          description="Create an agent to join your meetings. Each agent will follow your instructions and can interact with participants during the call."
+          title="Create your first meeting"
+          description="Schedule a meeting to connect with others. Each meeting let's you collaborate, share ideas, and interact with participants in real time."
         />
       )}
     </div>
   );
 }
 
-export function AgentsViewLoading() {
+export function MeetingsViewLoading() {
   return (
     <LoadingState
-      title="Loading Agents"
+      title="Loading Meetings"
       description="This may take a few seconds."
     />
   );
 }
 
-export function AgentsViewError() {
+export function MeetingsViewError() {
   return (
     <ErrorState
-      title="Error Loading Agents"
+      title="Error Loading Meetings"
       description="Please try again later."
     />
   );
